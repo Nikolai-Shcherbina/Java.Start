@@ -3,6 +3,8 @@ package ru.geekbrains.javafaststart.lesson_08;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 
 /**
@@ -18,6 +20,7 @@ public class GameWindow extends JFrame {
     private static float drop_left = 200; // координаты капли х левый верхний угол
     private static float drop_top = -100; // координаты капли y левый верхний угол
     private static float drop_v = 200; // скорость капли
+    private static int score;
 
     public static void main(String[] args) throws IOException {
         background = ImageIO.read(GameWindow.class.getResourceAsStream("background.png"));
@@ -30,6 +33,23 @@ public class GameWindow extends JFrame {
         game_window.setResizable(false); // запрет на изменение окна
         last_frame_time = System.nanoTime();
         GameField game_field = new GameField();
+        game_field.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int x = e.getX();
+                int y = e.getY();
+                float drop_right = drop_left + drop.getWidth(null);
+                float drop_bottom = drop_top + drop.getWidth(null);
+                boolean is_drop = x >= drop_left && x <= drop_right && y >= drop_top && y <= drop_bottom;
+                if(is_drop){
+                    drop_top = -100;
+                    drop_left = (int) (Math.random() * (game_field.getWidth() - drop.getWidth(null)));
+                    drop_v = drop_v + 20;
+                    score++;
+                    game_window.setTitle("score: " + score);
+                }
+            }
+        });
         game_window.add(game_field);
         game_window.setVisible(true); // делаем окно видимым
     }
@@ -40,10 +60,10 @@ public class GameWindow extends JFrame {
         last_frame_time = current_time;
 
         drop_top = drop_top + drop_v * delta_time;
-        drop_left = drop_left + drop_v * delta_time; // падение капли по диагонали
+        //drop_left = drop_left + drop_v * delta_time; // падение капли по диагонали
         g.drawImage(background, 0, 0, null);
         g.drawImage(drop, (int) drop_left, (int) drop_top, null);
-        //g.drawImage(game_over, 280, 120, null);
+        if (drop_top > game_window.getHeight())g.drawImage(game_over, 280, 120, null);
     }
 
     private static class GameField extends JPanel {
